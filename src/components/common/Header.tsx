@@ -1,11 +1,12 @@
 'use client';
 
 import Logo from '@/../public/icons/BudgetBuddy.svg';
-import { useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { GoSignOut } from 'react-icons/go';
 
 export const Header = () => {
   const router = useRouter();
@@ -23,7 +24,9 @@ export const Header = () => {
     router.push('/signup');
   };
 
-  console.log(data);
+  const handleSignOut = async () => {
+    await signOut({ redirect: true });
+  };
 
   return (
     <nav className="bg-white sticky w-full z-20 top-0 left-0 border-b border-gray-200 ">
@@ -38,13 +41,13 @@ export const Header = () => {
           <div className="md:flex hidden md:order-2 md:gap-8">
             <button
               onClick={handleSignUp}
-              className="text-white bg-gradient-to-r from-sky-500 to-indigo-500 hover:bg-gradient-to-r hover:from-sky-600 hover:to-indigo-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 "
+              className="text-white bg-gradient-to-r from-sky-500 to-indigo-500 hover:bg-gradient-to-r hover:from-sky-600 hover:to-indigo-600 focus:ring-2 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 "
             >
               SignUp
             </button>
             <button
               onClick={handleSignIn}
-              className="text-white bg-gradient-to-r from-sky-500 to-indigo-500 hover:bg-gradient-to-r hover:from-sky-600 hover:to-indigo-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 "
+              className="text-white bg-gradient-to-r from-sky-500 to-indigo-500 hover:bg-gradient-to-r hover:from-sky-600 hover:to-indigo-600 focus:ring-2 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 "
             >
               SingIn
             </button>
@@ -52,17 +55,24 @@ export const Header = () => {
         )}
         {data && (
           <div className="md:flex hidden md:order-2 md:gap-8">
-            <button
-              onClick={handleSignUp}
-              className="text-white bg-gradient-to-r from-sky-500 to-indigo-500 hover:bg-gradient-to-r hover:from-sky-600 hover:to-indigo-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 "
+            <Link
+              href={'/expenses'}
+              className="text-white bg-gradient-to-r from-sky-500 to-indigo-500 hover:bg-gradient-to-r hover:from-sky-600 hover:to-indigo-600 focus:ring-2 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 "
             >
               Expenses
-            </button>
-            <button
-              onClick={handleSignIn}
-              className="text-white bg-gradient-to-r from-sky-500 to-indigo-500 hover:bg-gradient-to-r hover:from-sky-600 hover:to-indigo-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 "
+            </Link>
+            <Link
+              href={'dashboard'}
+              className="text-white bg-gradient-to-r from-sky-500 to-indigo-500 hover:bg-gradient-to-r hover:from-sky-600 hover:to-indigo-600 focus:ring-2 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 "
             >
               Dashboard
+            </Link>
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-2 text-white bg-gradient-to-r from-sky-500 to-indigo-500 hover:bg-gradient-to-r hover:from-sky-600 hover:to-indigo-600 focus:ring-2 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 "
+            >
+              <GoSignOut />
+              <span> SignOut</span>
             </button>
           </div>
         )}
@@ -101,7 +111,7 @@ export const Header = () => {
         >
           {data ? (
             <ul
-              className="py-2 text-sm text-gray-800 w-full text-center"
+              className="py-2 text-sm text-gray-800 w-full text-center flex flex-col items-center"
               aria-labelledby="dropdownDefaultButton"
             >
               <li>
@@ -118,6 +128,15 @@ export const Header = () => {
                   className="block w-full px-4 py-2 hover:bg-purple-300 "
                 >
                   Expenses
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center gap-2 w-full px-4 py-2 hover:bg-purple-300 "
+                >
+                  <GoSignOut />
+                  <span> SignOut</span>
                 </button>
               </li>
             </ul>
