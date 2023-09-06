@@ -1,5 +1,6 @@
 import Intro from '@/../public/icons/Intro.svg';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const Home = () => {
   return (
@@ -99,7 +100,7 @@ const Home = () => {
           peace of mind.
         </p>
         <button className="mt-4 py-2 px-4 bg-indigo-500 text-white font-semibold rounded-full hover:bg-indigo-600 ">
-          Sign Up Now
+          <Link href={'/signup'}>Sign Up Now</Link>
         </button>
       </section>
     </div>

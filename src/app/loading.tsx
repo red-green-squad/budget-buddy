@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex items-center justify-center flex-col">
       <div className="text-center">
         <div role="status">
           <svg

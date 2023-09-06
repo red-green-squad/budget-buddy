@@ -3,10 +3,22 @@
 import Logo from '@/../public/icons/BudgetBuddy.svg';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export const Header = () => {
+  const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const handleSignIn = () => {
+    setIsDropdownOpen((prev) => !prev);
+    router.push('/signin');
+  };
+
+  const handleSignUp = () => {
+    setIsDropdownOpen((prev) => !prev);
+    router.push('/signup');
+  };
 
   return (
     <nav className="bg-white sticky w-full z-20 top-0 left-0 border-b border-gray-200 ">
@@ -19,13 +31,13 @@ export const Header = () => {
         </Link>
         <div className="md:flex hidden md:order-2 md:gap-8">
           <button
-            type="button"
+            onClick={handleSignUp}
             className="text-white bg-gradient-to-r from-sky-500 to-indigo-500 hover:bg-gradient-to-r hover:from-sky-600 hover:to-indigo-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 "
           >
             SignUp
           </button>
           <button
-            type="button"
+            onClick={handleSignIn}
             className="text-white bg-gradient-to-r from-sky-500 to-indigo-500 hover:bg-gradient-to-r hover:from-sky-600 hover:to-indigo-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 "
           >
             SingIn
@@ -68,20 +80,20 @@ export const Header = () => {
           aria-labelledby="dropdownDefaultButton"
         >
           <li>
-            <Link
-              href="#"
+            <button
+              onClick={handleSignUp}
               className="block w-full px-4 py-2 hover:bg-purple-300 "
             >
               SignUp
-            </Link>
+            </button>
           </li>
           <li>
-            <Link
-              href="#"
+            <button
+              onClick={handleSignIn}
               className="block w-full px-4 py-2 hover:bg-purple-300 "
             >
               SingIn
-            </Link>
+            </button>
           </li>
         </ul>
       </div>
