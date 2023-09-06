@@ -1,8 +1,12 @@
+'use client';
+
 import Intro from '@/../public/icons/Intro.svg';
+import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 
 const Home = () => {
+  const { data } = useSession();
   return (
     <div className="min-h-screen box-border px-4 py-10">
       <section className="flex flex-col-reverse gap-8 md:flex-row md:gap-8 mx-auto">
@@ -96,12 +100,17 @@ const Home = () => {
           Experience Financial Freedom with BudgetBuddy
         </h2>
         <p className="text-lg sm:text-sm md:text-xl">
-          Sign up today and start your journey toward financial freedom and
-          peace of mind.
+          Start your journey toward financial freedom and peace of mind.
         </p>
-        <button className="mt-4 py-2 px-4 bg-indigo-500 text-white font-semibold rounded-full hover:bg-indigo-600 ">
-          <Link href={'/signup'}>Sign Up Now</Link>
-        </button>
+        {data ? (
+          <button className="mt-4 py-2 px-4 bg-indigo-500 text-white font-semibold rounded-full hover:bg-indigo-600 ">
+            <Link href={'/expenses'}>Expenses</Link>
+          </button>
+        ) : (
+          <button className="mt-4 py-2 px-4 bg-indigo-500 text-white font-semibold rounded-full hover:bg-indigo-600 ">
+            <Link href={'/signup'}>Sign Up Now</Link>
+          </button>
+        )}
       </section>
     </div>
   );
