@@ -1,7 +1,8 @@
 import { Header } from '@/components/common/Header';
-import './globals.css';
+import AuthProvider from '@/contexts/AuthContext';
 import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
+import './globals.css';
 
 const poppins = Poppins({ subsets: ['latin'], weight: '400' });
 
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
   description: 'An Expense Tracking and Management System',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -18,8 +19,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={poppins.className}>
-        <Header />
-        {children}
+        <AuthProvider>
+          <Header />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

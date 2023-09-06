@@ -1,9 +1,8 @@
 'use client';
 
 import { useAsync } from '@/hooks/useAsync';
-import { SignUpFields, SingUpSchema } from '@/zod-schema/singnup';
+import { SingInFieldValues, SingInSchema } from '@/zod-schema/signin';
 import { zodResolver } from '@hookform/resolvers/zod';
-import axios from 'axios';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -14,52 +13,43 @@ import { FcGoogle } from 'react-icons/fc';
 export default function SignUp() {
   const router = useRouter();
 
-  const [{ isLoading, error, data }, signUpUser] = useAsync<
+  const [{ isLoading, error, data }, credentialsSignIn] = useAsync<
     unknown,
-    SignUpFields
+    SingInFieldValues
   >({
-    fn: (data) =>
-      axios.post('/api/signup', {
-        data,
-      }),
+    fn: (data) => signIn('credentials', { redirect: false, ...data }),
   });
+
+  const handleGoogleSignIn = async () => {
+    await signIn('google');
+    router.replace('/expenses');
+  };
 
   const {
     register,
     handleSubmit,
     formState: { isDirty, isValid },
-  } = useForm<SignUpFields>({
-    resolver: zodResolver(SingUpSchema),
+  } = useForm<SingInFieldValues>({
+    resolver: zodResolver(SingInSchema),
   });
 
-  const handleFormSubmit: SubmitHandler<SignUpFields> = async (data) => {
-    await signUpUser(data);
-  };
-
-  const handleGoogleSignIn = async () => {
-    await signIn('google');
+  const handleFormSubmit: SubmitHandler<SingInFieldValues> = async (data) => {
+    await credentialsSignIn(data);
   };
 
   useEffect(() => {
     if (data && !error) {
-      router.replace('/signin');
+      router.replace('/');
     }
   }, [data, error]);
 
   return (
     <div className=" flex flex-col p-4 gap-4 sm:w-full md:w-2/3 md:mx-auto lg:w-1/3">
-      <p className="text-center text-3xl">SignUp</p>
+      <p className="text-center text-3xl">SignIn</p>
       <form
         className="flex flex-col gap-4"
         onSubmit={handleSubmit(handleFormSubmit)}
       >
-        <section className="flex flex-col p-4 gap-4">
-          <label>Full Name</label>
-          <input
-            className="h-12 p-2 border-0 ring-2 ring-inset ring-indigo-200 rounded-lg focus:outline-none focus:ring-inset focus:ring-2 focus:ring-indigo-400"
-            {...register('fullName')}
-          />
-        </section>
         <section className="flex flex-col p-4 gap-4">
           <label>Email</label>
           <input
@@ -80,17 +70,17 @@ export default function SignUp() {
           disabled={!isDirty || !isValid}
           className="p-2 mx-[25%] h-12 rounded-xl disabled:bg-gray-400 bg-indigo-500 text-white items-center hover:bg-indigo-600"
         >
-          <p>{isLoading ? 'Signing Up...' : 'Sign Up'}</p>
+          <p>{isLoading ? 'Signing In...' : 'Sign In'}</p>
         </button>
         {error && (
           <p className="text-sm text-center text-red-400">{error.message}</p>
         )}
       </form>
       <section className="items-center flex justify-end">
-        <Link href={'/signin'}>
+        <Link href={'/signup'}>
           <p>
-            Already Registered?
-            <span className="text-lg text-indigo-400 "> Sign In</span>
+            Not Registered?
+            <span className="text-lg text-indigo-400 "> Sign Up</span>
           </p>
         </Link>
       </section>
@@ -103,8 +93,8 @@ export default function SignUp() {
       <p>Continue with : </p>
       <div className="flex flex-col gap-2">
         <button
-          className="flex gap-2 p-2 mx-[25%] h-12 rounded-xl bg-indigo-50 items-center justify-center hover:bg-indigo-100"
           onClick={handleGoogleSignIn}
+          className="flex gap-2 p-2 mx-[25%] h-12 rounded-xl bg-indigo-50 items-center justify-center hover:bg-indigo-100"
         >
           <FcGoogle />
           <span>Google</span>
