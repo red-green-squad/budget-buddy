@@ -14,7 +14,7 @@ const Home = () => {
           priority
           src={Intro}
           alt="IntroImage"
-          className="md:w-1/3 lg:w-1/2 md:ml-10"
+          className="w-full md:w-1/3 lg:w-2/5 md:ml-10"
         />
         <section className="flex flex-col gap-3 self-center md:self-start md:p-16">
           <div className="text-2xl font-extrabold text-center md:text-3xl lg:text-4xl bg-gradient-to-r from-sky-500 to-indigo-500 bg-clip-text text-transparent">

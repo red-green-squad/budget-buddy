@@ -2,8 +2,14 @@ import { useState } from 'react';
 
 export type useAsyncProps<T, K> = {
   fn: (params: K) => Promise<T>;
+  onComplete?(data?: T): void | Promise<void>;
+  onError?(error: Error): void;
 };
-export const useAsync = <T, K>({ fn }: useAsyncProps<T, K>) => {
+export const useAsync = <T, K>({
+  fn,
+  onComplete,
+  onError,
+}: useAsyncProps<T, K>) => {
   const [data, setData] = useState<T>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error>();
@@ -14,9 +20,11 @@ export const useAsync = <T, K>({ fn }: useAsyncProps<T, K>) => {
       setError(undefined);
       const response = await fn(params);
       setData(response);
+      await onComplete?.(data);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(new Error(err.message));
+      await onError?.(err);
     } finally {
       setIsLoading(false);
     }
