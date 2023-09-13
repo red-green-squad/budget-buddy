@@ -1,7 +1,7 @@
 'use client';
 
 import { useAsync } from '@/hooks/useAsync';
-import { SingInFieldValues, SingInSchema } from '@/zod-schema/signin';
+import { SignInSchema, SignInFieldValues } from '@/zod-schema/signin';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
@@ -15,7 +15,7 @@ export default function SignUp() {
 
   const [{ isLoading, error, data }, credentialsSignIn] = useAsync<
     unknown,
-    SingInFieldValues
+    SignInFieldValues
   >({
     fn: (data) => signIn('credentials', { redirect: false, ...data }),
   });
@@ -28,12 +28,13 @@ export default function SignUp() {
   const {
     register,
     handleSubmit,
-    formState: { isDirty, isValid },
-  } = useForm<SingInFieldValues>({
-    resolver: zodResolver(SingInSchema),
+    formState: { isDirty, isValid, errors },
+  } = useForm<SignInFieldValues>({
+    resolver: zodResolver(SignInSchema),
+    mode: 'all',
   });
 
-  const handleFormSubmit: SubmitHandler<SingInFieldValues> = async (data) => {
+  const handleFormSubmit: SubmitHandler<SignInFieldValues> = async (data) => {
     await credentialsSignIn(data);
   };
 
@@ -56,6 +57,9 @@ export default function SignUp() {
             className="h-12 p-2 border-0 ring-2 ring-inset ring-indigo-200 rounded-lg focus:outline-none focus:ring-inset focus:ring-2 focus:ring-indigo-400"
             {...register('email')}
           />
+          {errors.email && (
+            <span className="text-red-400">{errors.email.message}</span>
+          )}
         </section>
         <section className="flex flex-col p-4 gap-4">
           <label>Password</label>
@@ -64,6 +68,9 @@ export default function SignUp() {
             className="h-12 p-2 border-0 ring-2 ring-inset ring-indigo-200 rounded-lg focus:outline-none focus:ring-inset focus:ring-2 focus:ring-indigo-400"
             {...register('password')}
           />
+          {errors.password && (
+            <span className="text-red-400">{errors.password.message}</span>
+          )}
         </section>
         <button
           type="submit"

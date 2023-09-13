@@ -10,7 +10,7 @@ import { GoSignOut } from 'react-icons/go';
 
 export const Header = () => {
   const router = useRouter();
-  const { data } = useSession();
+  const { status } = useSession();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -37,7 +37,7 @@ export const Header = () => {
             BudgetBuddy
           </span>
         </Link>
-        {!data && (
+        {status === 'unauthenticated' && (
           <div className="md:flex hidden md:order-2 md:gap-8">
             <button
               onClick={handleSignUp}
@@ -53,7 +53,7 @@ export const Header = () => {
             </button>
           </div>
         )}
-        {data && (
+        {status === 'authenticated' && (
           <div className="md:flex hidden md:order-2 md:gap-8">
             <Link
               href={'/expenses'}
@@ -74,6 +74,13 @@ export const Header = () => {
               <GoSignOut />
               <span> SignOut</span>
             </button>
+          </div>
+        )}
+        {status === 'loading' && (
+          <div role="status" className="max-w-sm animate-pulse">
+            <div className="h-2 bg-gray-200 rounded-full max-w-[360px] mb-2.5"></div>
+            <div className="h-2.5 bg-gray-200 rounded-full w-48 mb-4"></div>
+            <div className="h-2 bg-gray-200 rounded-full mb-2.5"></div>
           </div>
         )}
         <button
@@ -109,7 +116,7 @@ export const Header = () => {
             isDropdownOpen ? 'block' : 'hidden'
           } bg-white divide-y divide-gray-100 rounded-lg shadow w-full`}
         >
-          {data ? (
+          {status === 'authenticated' ? (
             <ul
               className="py-2 text-sm text-gray-800 w-full text-center flex flex-col items-center"
               aria-labelledby="dropdownDefaultButton"
@@ -141,27 +148,29 @@ export const Header = () => {
               </li>
             </ul>
           ) : (
-            <ul
-              className="py-2 text-sm text-gray-800 w-full text-center"
-              aria-labelledby="dropdownDefaultButton"
-            >
-              <li>
-                <button
-                  onClick={handleSignUp}
-                  className="block w-full px-4 py-2 hover:bg-purple-300 "
-                >
-                  SignUp
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={handleSignIn}
-                  className="block w-full px-4 py-2 hover:bg-purple-300 "
-                >
-                  SingIn
-                </button>
-              </li>
-            </ul>
+            status === 'unauthenticated' && (
+              <ul
+                className="py-2 text-sm text-gray-800 w-full text-center"
+                aria-labelledby="dropdownDefaultButton"
+              >
+                <li>
+                  <button
+                    onClick={handleSignUp}
+                    className="block w-full px-4 py-2 hover:bg-purple-300 "
+                  >
+                    SignUp
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={handleSignIn}
+                    className="block w-full px-4 py-2 hover:bg-purple-300 "
+                  >
+                    SingIn
+                  </button>
+                </li>
+              </ul>
+            )
           )}
         </div>
       }

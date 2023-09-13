@@ -3,6 +3,7 @@ import AuthProvider from '@/contexts/AuthContext';
 import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
 import './globals.css';
+import { Toaster } from 'react-hot-toast';
 
 const poppins = Poppins({ subsets: ['latin'], weight: '400' });
 
@@ -19,10 +20,13 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={poppins.className}>
-        <AuthProvider>
-          <Header />
-          {children}
-        </AuthProvider>
+        <div className="min-h-screen flex flex-col">
+          <Toaster position={'bottom-right'} />
+          <AuthProvider>
+            <Header />
+            {children}
+          </AuthProvider>
+        </div>
       </body>
     </html>
   );

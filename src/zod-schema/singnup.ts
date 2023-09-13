@@ -1,7 +1,10 @@
 import { z } from 'zod';
 
 export const SingUpSchema = z.object({
-  fullName: z.string({ required_error: 'FullName is a required field' }).trim(),
+  fullName: z
+    .string({ required_error: 'FullName is a required field' })
+    .trim()
+    .min(1, 'FullName is a required field'),
   email: z
     .string({ required_error: 'Email required' })
     .email('Please enter a valid email address'),

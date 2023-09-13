@@ -7,30 +7,36 @@ import axios from 'axios';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
 import { FcGoogle } from 'react-icons/fc';
 
 export default function SignUp() {
   const router = useRouter();
 
-  const [{ isLoading, error, data }, signUpUser] = useAsync<
-    unknown,
-    SignUpFields
-  >({
-    fn: (data) =>
-      axios.post('/api/signup', {
-        data,
-      }),
+  const [{ isLoading, error }, signUpUser] = useAsync<unknown, SignUpFields>({
+    fn: (data) => axios.post('/api/signup', data),
+    onComplete: handleSignUpComplete,
+    onError: handleRegistrationError,
   });
 
   const {
     register,
     handleSubmit,
-    formState: { isDirty, isValid },
+    formState: { isDirty, isValid, errors },
   } = useForm<SignUpFields>({
     resolver: zodResolver(SingUpSchema),
+    mode: 'all',
   });
+
+  function handleSignUpComplete() {
+    toast.success('Registered successfully');
+    router.replace('/signin');
+  }
+
+  function handleRegistrationError(e: Error) {
+    toast.error(e.message);
+  }
 
   const handleFormSubmit: SubmitHandler<SignUpFields> = async (data) => {
     await signUpUser(data);
@@ -39,12 +45,6 @@ export default function SignUp() {
   const handleGoogleSignIn = async () => {
     await signIn('google');
   };
-
-  useEffect(() => {
-    if (data && !error) {
-      router.replace('/signin');
-    }
-  }, [data, error]);
 
   return (
     <div className=" flex flex-col p-4 gap-4 sm:w-full md:w-2/3 md:mx-auto lg:w-1/3">
@@ -59,6 +59,9 @@ export default function SignUp() {
             className="h-12 p-2 border-0 ring-2 ring-inset ring-indigo-200 rounded-lg focus:outline-none focus:ring-inset focus:ring-2 focus:ring-indigo-400"
             {...register('fullName')}
           />
+          {errors.fullName && (
+            <span className="text-red-400">{errors.fullName.message}</span>
+          )}
         </section>
         <section className="flex flex-col p-4 gap-4">
           <label>Email</label>
@@ -66,6 +69,9 @@ export default function SignUp() {
             className="h-12 p-2 border-0 ring-2 ring-inset ring-indigo-200 rounded-lg focus:outline-none focus:ring-inset focus:ring-2 focus:ring-indigo-400"
             {...register('email')}
           />
+          {errors.email && (
+            <span className="text-red-400">{errors.email.message}</span>
+          )}
         </section>
         <section className="flex flex-col p-4 gap-4">
           <label>Password</label>
@@ -74,6 +80,9 @@ export default function SignUp() {
             className="h-12 p-2 border-0 ring-2 ring-inset ring-indigo-200 rounded-lg focus:outline-none focus:ring-inset focus:ring-2 focus:ring-indigo-400"
             {...register('password')}
           />
+          {errors.password && (
+            <span className="text-red-400">{errors.password.message}</span>
+          )}
         </section>
         <button
           type="submit"
