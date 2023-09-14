@@ -19,12 +19,15 @@ export default async function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={poppins.className}>
-        <div className="min-h-screen flex flex-col">
+      <body
+        className={poppins.className}
+        style={{ height: '100vh', overflow: 'hidden' }}
+      >
+        <div className="min-h-screen h-full flex flex-col">
           <Toaster position={'bottom-right'} />
           <AuthProvider>
             <Header />
-            {children}
+            <div className="flex-1 box-border h-[90%]">{children}</div>
           </AuthProvider>
         </div>
       </body>
