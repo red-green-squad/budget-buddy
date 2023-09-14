@@ -8,7 +8,7 @@ import Link from 'next/link';
 const Home = () => {
   const { data } = useSession();
   return (
-    <div className="min-h-screen box-border px-4 py-10">
+    <div className="min-h-screen h-full overflow-y-scroll box-border px-4 py-10">
       <section className="flex flex-col-reverse gap-8 md:flex-row md:gap-8 mx-auto">
         <Image
           priority
