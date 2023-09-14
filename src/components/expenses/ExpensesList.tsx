@@ -4,9 +4,10 @@ import { ExpenseRequestBody } from '@/app/api/expenses/route';
 import { useAsync } from '@/hooks/useAsync';
 import axios, { AxiosResponse } from 'axios';
 import { useEffect, useState } from 'react';
-import { Table } from './Table';
-import { TableToolbar } from './TableToolbar';
+import { Table } from '../common/table/Table';
+import { TableToolbar } from '../common/table/TableToolbar';
 import { ExpenseCategory } from '@/zod-schema/expense';
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@/constants/table';
 
 export type ExpenseItem = {
   id: string;
@@ -28,8 +29,8 @@ export type ExpenseListPage = {
 };
 
 export const ExpensesList = () => {
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [page, setPage] = useState(DEFAULT_PAGE);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [{ data }, getExpenses] = useAsync<
     AxiosResponse<ExpenseListPage>,
     ExpenseRequestBody
