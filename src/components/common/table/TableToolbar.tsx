@@ -1,4 +1,26 @@
-export const TableToolbar = () => {
+'use client';
+
+import { ChangeEvent, FC, useEffect, useState } from 'react';
+
+export type TableToolbarProp = {
+  onSearchChange(searchKey: string): void;
+};
+export const TableToolbar: FC<TableToolbarProp> = ({ onSearchChange }) => {
+  const [searchKey, setSearchKey] = useState<string>('');
+
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchKey(value);
+  };
+
+  useEffect(() => {
+    const timeOutId = setTimeout(() => {
+      onSearchChange(searchKey);
+    }, 500);
+
+    return () => clearTimeout(timeOutId);
+  }, [searchKey]);
+
   return (
     <div className="flex flex-col gap-2 mx-auto md:mx-0 md:justify-between md:flex-row">
       <select
@@ -29,8 +51,10 @@ export const TableToolbar = () => {
         <input
           type="text"
           id="table-search"
+          value={searchKey}
           className="block p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 "
           placeholder="Search for items"
+          onChange={handleSearchChange}
         />
       </div>
     </div>

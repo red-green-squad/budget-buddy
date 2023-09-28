@@ -1,12 +1,15 @@
 import { connectToDB } from '@/db/mongodb';
 import { ExpenseModel } from '@/models/expense';
 import { ExpenseListPage } from '@/types/expenses';
+import { Filter } from '@/types/filters';
+import { translateFilters } from '@/utils/filters';
 import { ExpenseValues } from '@/zod-schema/expense';
 import { NextRequest, NextResponse } from 'next/server';
 
 export type ExpenseRequestBody = {
   sort?: { field: string; value: 'asc' | 'desc' };
   pagination: { page: number; pageSize: number };
+  filters: Filter[];
 };
 
 export async function POST(req: NextRequest) {
@@ -39,17 +42,22 @@ export async function GET(
 
     const paginationParams = searchParams.get('pagination');
     const sortParams = searchParams.get('sort');
+    const filtersParams = searchParams.get('filters');
 
     const pagination = paginationParams
       ? JSON.parse(paginationParams)
       : { page: 1, pageSize: 100 };
+    const filters = filtersParams ? JSON.parse(filtersParams) : [];
     const sort = sortParams
       ? JSON.parse(sortParams)
       : { field: 'name', value: 'asc' };
 
+    const filterStages = translateFilters(filters);
+
     const expenses = await ExpenseModel.aggregate([
       { $match: { createdBy: email } },
     ])
+      .append(...filterStages)
       .append({
         $sort: { [sort!.field]: sort!.value === 'asc' ? 1 : -1 },
       })
