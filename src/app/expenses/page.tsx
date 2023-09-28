@@ -5,7 +5,9 @@ import { ExpensesList } from '@/components/expenses/ExpensesList';
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@/constants/table';
 import { useAsync } from '@/hooks/useAsync';
 import { ExpenseListPage } from '@/types/expenses';
+import { Filter } from '@/types/filters';
 import axios, { AxiosResponse } from 'axios';
+import { produce } from 'immer';
 import { useEffect, useState } from 'react';
 import { ExpenseRequestBody } from '../api/expenses/route';
 
@@ -13,15 +15,17 @@ export default function Expenses() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(DEFAULT_PAGE);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [filters, setFilters] = useState<Filter[]>([]);
   const [expensesResult, getExpenses] = useAsync<
     AxiosResponse<ExpenseListPage>,
     ExpenseRequestBody
   >({
-    fn: ({ pagination, sort }) => {
+    fn: ({ pagination, sort, filters }) => {
       return axios.get('/api/expenses', {
         params: {
           pagination: JSON.stringify(pagination),
           sort: JSON.stringify(sort),
+          filters: JSON.stringify(filters),
         },
       });
     },
@@ -30,8 +34,9 @@ export default function Expenses() {
   useEffect(() => {
     getExpenses({
       pagination: { page, pageSize },
+      filters,
     });
-  }, [page, pageSize]);
+  }, [page, pageSize, filters]);
 
   const handleModalClose = () => {
     setIsModalOpen(false);
@@ -44,7 +49,39 @@ export default function Expenses() {
   const handleCreateExpenseComplete = async () => {
     await getExpenses({
       pagination: { page, pageSize },
+      filters,
     });
+  };
+
+  const handleSearchKeyChange = (searchKey: string) => {
+    if (searchKey.trim().length > 0) {
+      const updatedFilters = produce(filters, (draft) => {
+        const searchFilterIndex = draft.findIndex(
+          (filter) => filter.path.join('.') === 'name'
+        );
+        if (searchFilterIndex !== -1) {
+          draft[searchFilterIndex].value = searchKey;
+        } else {
+          draft.push({
+            type: 'text',
+            path: ['name'],
+            condition: 'text:contains',
+            value: searchKey,
+          });
+        }
+      });
+      setFilters(updatedFilters);
+    } else {
+      const updatedFilters = produce(filters, (draft) => {
+        const searchFilterIndex = draft.findIndex(
+          (filter) => filter.path.join('.') === 'name'
+        );
+        if (searchFilterIndex !== -1) {
+          draft.splice(searchFilterIndex, 1);
+        }
+      });
+      setFilters(updatedFilters);
+    }
   };
 
   return (
@@ -65,6 +102,7 @@ export default function Expenses() {
           pageSize={pageSize}
           onPageChange={setPage}
           onPageSizeChange={setPageSize}
+          onSearchKeyChange={handleSearchKeyChange}
         />
       </div>
       <CreateExpenseModal

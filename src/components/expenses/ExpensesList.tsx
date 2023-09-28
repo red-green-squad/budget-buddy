@@ -13,6 +13,7 @@ export type ExpenseListProps = {
   pageSize: number;
   onPageChange(page: number): void;
   onPageSizeChange(pageSize: number): void;
+  onSearchKeyChange(searchKey: string): void;
 };
 
 export const ExpensesList: FC<ExpenseListProps> = ({
@@ -21,11 +22,12 @@ export const ExpensesList: FC<ExpenseListProps> = ({
   pageSize,
   onPageChange,
   onPageSizeChange,
+  onSearchKeyChange,
 }) => {
   const { isLoading, error, data: result } = expenses;
   return (
     <div className="h-full flex flex-col flex-1 gap-4">
-      <TableToolbar />
+      <TableToolbar onSearchChange={onSearchKeyChange} />
       <Table<ExpenseItem>
         isLoading={isLoading}
         hasError={!!error}
