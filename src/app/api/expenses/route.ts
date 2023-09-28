@@ -1,6 +1,6 @@
-import { ExpenseListPage } from '@/components/expenses/ExpensesList';
 import { connectToDB } from '@/db/mongodb';
 import { ExpenseModel } from '@/models/expense';
+import { ExpenseListPage } from '@/types/expenses';
 import { ExpenseValues } from '@/zod-schema/expense';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -13,9 +13,11 @@ export async function POST(req: NextRequest) {
   try {
     await connectToDB();
     const expenseDetails: ExpenseValues = await req.json();
+    const email = req.headers.get('userEmail');
 
     const expense = await ExpenseModel.create({
       ...expenseDetails,
+      createdBy: email,
     });
 
     return NextResponse.json({ expense }, { status: 201 });
@@ -33,6 +35,7 @@ export async function GET(
   try {
     await connectToDB();
     const searchParams = req.nextUrl.searchParams;
+    const email = req.headers.get('userEmail');
 
     const paginationParams = searchParams.get('pagination');
     const sortParams = searchParams.get('sort');
@@ -44,7 +47,9 @@ export async function GET(
       ? JSON.parse(sortParams)
       : { field: 'name', value: 'asc' };
 
-    const expenses = await ExpenseModel.aggregate([{ $match: {} }])
+    const expenses = await ExpenseModel.aggregate([
+      { $match: { createdBy: email } },
+    ])
       .append({
         $sort: { [sort!.field]: sort!.value === 'asc' ? 1 : -1 },
       })

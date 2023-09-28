@@ -2,9 +2,9 @@ import { getModelForClass, prop } from '@typegoose/typegoose';
 import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 import mongoose from 'mongoose';
 
-interface User extends Base {}
+export interface User extends Base {}
 
-class User extends TimeStamps {
+export class User extends TimeStamps {
   @prop({ required: true, unique: true })
   public email!: string;
 

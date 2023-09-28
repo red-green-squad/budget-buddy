@@ -1,64 +1,38 @@
 'use client';
 
-import { ExpenseRequestBody } from '@/app/api/expenses/route';
-import { useAsync } from '@/hooks/useAsync';
-import axios, { AxiosResponse } from 'axios';
-import { useEffect, useState } from 'react';
+import { AsyncResult } from '@/hooks/useAsync';
+import { ExpenseItem, ExpenseListPage } from '@/types/expenses';
+import { AxiosResponse } from 'axios';
+import { FC } from 'react';
 import { Table } from '../common/table/Table';
 import { TableToolbar } from '../common/table/TableToolbar';
-import { ExpenseCategory } from '@/zod-schema/expense';
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@/constants/table';
 
-export type ExpenseItem = {
-  id: string;
-  name: string;
-  description: string;
-  category: ExpenseCategory;
-  date: Date;
-  createdAt: Date;
-  updatedAt: Date;
-  images: unknown[];
-  amount: number;
-};
-
-export type ExpenseListPage = {
+export type ExpenseListProps = {
+  expenses: AsyncResult<AxiosResponse<ExpenseListPage>>;
   page: number;
   pageSize: number;
-  totalItemCount: number;
-  items: ExpenseItem[];
+  onPageChange(page: number): void;
+  onPageSizeChange(pageSize: number): void;
 };
 
-export const ExpensesList = () => {
-  const [page, setPage] = useState(DEFAULT_PAGE);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-  const [{ data }, getExpenses] = useAsync<
-    AxiosResponse<ExpenseListPage>,
-    ExpenseRequestBody
-  >({
-    fn: ({ pagination, sort }) => {
-      return axios.get('/api/expenses', {
-        params: {
-          pagination: JSON.stringify(pagination),
-          sort: JSON.stringify(sort),
-        },
-      });
-    },
-  });
-
-  useEffect(() => {
-    getExpenses({
-      pagination: { page, pageSize },
-    });
-  }, [page, pageSize]);
-
+export const ExpensesList: FC<ExpenseListProps> = ({
+  expenses,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+}) => {
+  const { isLoading, error, data: result } = expenses;
   return (
     <div className="h-full flex flex-col flex-1 gap-4">
       <TableToolbar />
       <Table<ExpenseItem>
+        isLoading={isLoading}
+        hasError={!!error}
         page={page}
         pageSize={pageSize}
-        totalItemCount={data?.data.totalItemCount || 0}
-        items={data?.data.items || []}
+        totalItemCount={result?.data.totalItemCount || 0}
+        items={result?.data.items || []}
         columns={[
           {
             key: 'name',
@@ -91,8 +65,8 @@ export const ExpensesList = () => {
             type: 'date',
           },
         ]}
-        onPageChange={setPage}
-        onPageSizeChange={setPageSize}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
       />
     </div>
   );

@@ -24,7 +24,7 @@ export default async function RootLayout({
         style={{ height: '100vh', overflow: 'hidden' }}
       >
         <div className="min-h-screen h-full flex flex-col">
-          <Toaster position={'bottom-right'} />
+          <Toaster position={'top-right'} />
           <AuthProvider>
             <Header />
             <div className="flex-1 box-border h-[90%]">{children}</div>
