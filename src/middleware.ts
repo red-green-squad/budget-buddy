@@ -19,5 +19,12 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl);
     }
   }
-  return NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('userEmail', token!.email!);
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 }

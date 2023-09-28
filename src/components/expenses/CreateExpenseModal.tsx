@@ -5,18 +5,20 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import axios, { AxiosResponse } from 'axios';
 import { FC } from 'react';
 import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
 import { Modal } from '../common/Modal';
 import { ExpenseForm } from './ExpenseForm';
-import toast from 'react-hot-toast';
 
 type CreateExpenseModal = {
   isOpen: boolean;
   onClose(): void;
+  onComplete(): Promise<void>;
 };
 
 export const CreateExpenseModal: FC<CreateExpenseModal> = ({
   isOpen,
   onClose,
+  onComplete,
 }) => {
   const {
     register,
@@ -38,8 +40,9 @@ export const CreateExpenseModal: FC<CreateExpenseModal> = ({
     onError: handleCreateError,
   });
 
-  function handleCreateComplete() {
+  async function handleCreateComplete() {
     toast.success('Successfully Created the Expense');
+    await onComplete();
     handleClose();
   }
 

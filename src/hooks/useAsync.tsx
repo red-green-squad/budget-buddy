@@ -1,10 +1,17 @@
 import { useState } from 'react';
 
+export type AsyncResult<T> = {
+  isLoading: boolean;
+  data?: T;
+  error?: Error;
+};
+
 export type useAsyncProps<T, K> = {
   fn: (params: K) => Promise<T>;
   onComplete?(data?: T): void | Promise<void>;
   onError?(error: Error): void;
 };
+
 export const useAsync = <T, K>({
   fn,
   onComplete,

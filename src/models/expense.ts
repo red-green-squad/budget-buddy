@@ -30,6 +30,9 @@ export class Expense extends TimeStamps {
 
   @prop({ required: false })
   public images?: string[];
+
+  @prop({ required: true })
+  public createdBy!: string;
 }
 
 export const ExpenseModel =

@@ -2,10 +2,36 @@
 
 import { CreateExpenseModal } from '@/components/expenses/CreateExpenseModal';
 import { ExpensesList } from '@/components/expenses/ExpensesList';
-import { useState } from 'react';
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@/constants/table';
+import { useAsync } from '@/hooks/useAsync';
+import { ExpenseListPage } from '@/types/expenses';
+import axios, { AxiosResponse } from 'axios';
+import { useEffect, useState } from 'react';
+import { ExpenseRequestBody } from '../api/expenses/route';
 
 export default function Expenses() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [page, setPage] = useState(DEFAULT_PAGE);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [expensesResult, getExpenses] = useAsync<
+    AxiosResponse<ExpenseListPage>,
+    ExpenseRequestBody
+  >({
+    fn: ({ pagination, sort }) => {
+      return axios.get('/api/expenses', {
+        params: {
+          pagination: JSON.stringify(pagination),
+          sort: JSON.stringify(sort),
+        },
+      });
+    },
+  });
+
+  useEffect(() => {
+    getExpenses({
+      pagination: { page, pageSize },
+    });
+  }, [page, pageSize]);
 
   const handleModalClose = () => {
     setIsModalOpen(false);
@@ -13,6 +39,12 @@ export default function Expenses() {
 
   const handleCreateExpense = () => {
     setIsModalOpen(true);
+  };
+
+  const handleCreateExpenseComplete = async () => {
+    await getExpenses({
+      pagination: { page, pageSize },
+    });
   };
 
   return (
@@ -27,9 +59,19 @@ export default function Expenses() {
         </button>
       </div>
       <div className="flex flex-col h-[85%]">
-        <ExpensesList />
+        <ExpensesList
+          expenses={expensesResult}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
       </div>
-      <CreateExpenseModal isOpen={isModalOpen} onClose={handleModalClose} />
+      <CreateExpenseModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onComplete={handleCreateExpenseComplete}
+      />
     </div>
   );
 }
