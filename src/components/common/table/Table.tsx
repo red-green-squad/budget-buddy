@@ -1,8 +1,15 @@
 'use client';
+import moment from 'moment';
 import { Loader } from '../Loader';
 import { EmptyList } from './EmptyList';
 import { ListError } from './ListError';
 import { Pagination } from './Pagination';
+
+type TableColumn<T> = {
+  name: string;
+  key: keyof T;
+  type: 'string' | 'number' | 'date' | 'array';
+};
 
 type TableProps<T> = {
   isLoading?: boolean;
@@ -11,17 +18,27 @@ type TableProps<T> = {
   pageSize: number;
   totalItemCount: number;
   items: T[];
-  columns: {
-    key: keyof T;
-    name: string;
-    type: 'string' | 'number' | 'date';
-  }[];
+  columns: TableColumn<T>[];
   onPageChange(page: number): void;
   onPageSizeChange(pageSize: number): void;
 };
 
+function getColumnValue<T>(column: TableColumn<T>, item: T) {
+  const value = item[column.key];
+  switch (column.type) {
+    case 'string':
+      return String(value);
+    case 'number':
+      return Number(value);
+    case 'date':
+      return moment(value as Date).format('DD-MM-YYYY');
+    case 'array':
+      return (value as unknown[]).join('.');
+  }
+}
+
 export const Table = <
-  T extends Record<string, string | number | Date | boolean | unknown[]>,
+  T extends Record<string, string | number | Date | unknown[]>,
 >({
   page,
   pageSize,
@@ -91,16 +108,10 @@ export const Table = <
                       </div>
                     </td>
                     {columns.map((col) => {
-                      //TODO: Add a method that will extract the value from the columns
-                      const value = item[col.key];
-                      const formattedValue = ['string', 'number'].includes(
-                        typeof value
-                      )
-                        ? value
-                        : value.toString();
+                      const value = getColumnValue(col, item);
                       return (
                         <td key={col.key.toString()} className="px-6 py-4">
-                          {formattedValue as string}
+                          {value}
                         </td>
                       );
                     })}

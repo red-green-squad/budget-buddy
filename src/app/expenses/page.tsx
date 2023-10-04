@@ -3,22 +3,62 @@
 import { EXPENSE_RANGE } from '@/components/common/table/TableToolbar';
 import { CreateExpenseModal } from '@/components/expenses/CreateExpenseModal';
 import { ExpensesList } from '@/components/expenses/ExpensesList';
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@/constants/table';
 import { useAsync } from '@/hooks/useAsync';
 import { ExpenseListPage } from '@/types/expenses';
 import { Filter } from '@/types/filters';
 import { getFilter } from '@/utils/filters';
+import { ExpenseQuerySchema } from '@/zod-schema/expense';
 import axios, { AxiosResponse } from 'axios';
-import { produce } from 'immer';
-import { useEffect, useState } from 'react';
+import {
+  ReadonlyURLSearchParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ExpenseRequestBody } from '../api/expenses/route';
 
+function parseSearchParamsToObj(
+  searchParams: ReadonlyURLSearchParams
+): Record<string, any> {
+  const response: Record<string, any> = {};
+  for (const [key, value] of searchParams.entries()) {
+    response[key] = value;
+  }
+  return response;
+}
+
+function getFilters(expenseRange: EXPENSE_RANGE, searchKey?: string) {
+  const filters: Filter[] = [];
+  if (!!searchKey?.trim().length) {
+    filters.push({
+      type: 'text',
+      path: ['name'],
+      condition: 'text:contains',
+      value: searchKey,
+    });
+  }
+  const range = expenseRange;
+  if (range !== 'empty') {
+    const rangeFilter = getFilter(range);
+    filters.push(rangeFilter);
+  }
+  return filters;
+}
+
 export default function Expenses() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const parsedParams = parseSearchParamsToObj(searchParams);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [page, setPage] = useState(DEFAULT_PAGE);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-  const [expenseRange, setExpenseRange] = useState<EXPENSE_RANGE>('thisWeek');
-  const [filters, setFilters] = useState<Filter[]>([]);
+  const { page, pageSize, searchKey, expenseRange } =
+    ExpenseQuerySchema.parse(parsedParams);
+  const filters = useMemo(() => {
+    return getFilters(expenseRange as EXPENSE_RANGE, searchKey);
+  }, [searchKey, expenseRange]);
+
   const [expensesResult, getExpenses] = useAsync<
     AxiosResponse<ExpenseListPage>,
     ExpenseRequestBody
@@ -33,6 +73,16 @@ export default function Expenses() {
       });
     },
   });
+
+  const createQueryString = useCallback(
+    (name: string, value: string) => {
+      const params = new URLSearchParams(searchParams);
+      params.set(name, value);
+
+      return params.toString();
+    },
+    [searchParams]
+  );
 
   useEffect(() => {
     getExpenses({
@@ -49,6 +99,21 @@ export default function Expenses() {
     setIsModalOpen(true);
   };
 
+  const handlePageChange = (page: number) => {
+    const queryString = createQueryString('page', String(page));
+    router.push(pathname + `?${queryString}`);
+  };
+
+  const handlePageSizeChange = (pageSize: number) => {
+    const queryString = createQueryString('pageSize', String(pageSize));
+    router.push(pathname + `?${queryString}`);
+  };
+
+  const handleFilterRangeChange = (range: EXPENSE_RANGE) => {
+    const queryString = createQueryString('expenseRange', range);
+    router.push(pathname + `?${queryString}`);
+  };
+
   const handleCreateExpenseComplete = async () => {
     await getExpenses({
       pagination: { page, pageSize },
@@ -57,63 +122,12 @@ export default function Expenses() {
   };
 
   const handleSearchKeyChange = (searchKey: string) => {
-    if (searchKey.trim().length > 0) {
-      const updatedFilters = produce(filters, (draft) => {
-        const searchFilterIndex = draft.findIndex(
-          (filter) => filter.path.join('.') === 'name'
-        );
-        if (searchFilterIndex !== -1) {
-          draft[searchFilterIndex].value = searchKey;
-        } else {
-          draft.push({
-            type: 'text',
-            path: ['name'],
-            condition: 'text:contains',
-            value: searchKey,
-          });
-        }
-      });
-      setFilters(updatedFilters);
-    } else {
-      const updatedFilters = produce(filters, (draft) => {
-        const searchFilterIndex = draft.findIndex(
-          (filter) => filter.path.join('.') === 'name'
-        );
-        if (searchFilterIndex !== -1) {
-          draft.splice(searchFilterIndex, 1);
-        }
-      });
-      setFilters(updatedFilters);
-    }
+    const queryString = createQueryString('searchKey', searchKey);
+    router.push(pathname + `?${queryString}`);
   };
 
-  const handleExpenseRangeChange = (range: EXPENSE_RANGE) => {
-    if (range === 'empty') {
-      const updatedFilters = produce(filters, (draft) => {
-        const rangeFilterIndex = draft.findIndex(
-          (filter) => filter.path.join('.') === 'date'
-        );
-        if (rangeFilterIndex !== -1) {
-          draft.splice(rangeFilterIndex, 1);
-        }
-      });
-      setFilters(updatedFilters);
-    } else {
-      const filter = getFilter(range);
-      const updatedFilters = produce(filters, (draft) => {
-        const rangeFilterIndex = draft.findIndex(
-          (filter) => filter.path.join('.') === 'date'
-        );
-        if (rangeFilterIndex !== -1) {
-          draft[rangeFilterIndex] = filter;
-        } else {
-          draft.push(filter);
-        }
-      });
-      setFilters(updatedFilters);
-    }
-    setExpenseRange(range);
-  };
+  console.log('ExpenseRange: ', expenseRange);
+  console.log(searchParams.toString());
 
   return (
     <div className="h-full shadow-md sm:rounded-lg flex-1 p-4 flex flex-col">
@@ -131,11 +145,11 @@ export default function Expenses() {
           expenses={expensesResult}
           page={page}
           pageSize={pageSize}
-          expenseRange={expenseRange}
-          onPageChange={setPage}
-          onPageSizeChange={setPageSize}
+          expenseRange={expenseRange as EXPENSE_RANGE}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
           onSearchKeyChange={handleSearchKeyChange}
-          onExpenseRangeChange={handleExpenseRangeChange}
+          onExpenseRangeChange={handleFilterRangeChange}
         />
       </div>
       <CreateExpenseModal
