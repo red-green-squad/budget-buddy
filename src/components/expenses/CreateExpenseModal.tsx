@@ -83,7 +83,7 @@ export const CreateExpenseModal: FC<CreateExpenseModal> = ({
             className="p-2 flex-1 h-12 rounded-xl disabled:bg-gray-400 bg-indigo-500 text-white items-center hover:bg-indigo-600"
             onClick={() => handleFormSubmit()}
           >
-            <p>{isLoading ? 'Signing Up...' : 'Sign Up'}</p>
+            <p>{isLoading ? 'Creating..' : 'Create'}</p>
           </button>
         </section>
       }

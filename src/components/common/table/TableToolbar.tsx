@@ -2,15 +2,33 @@
 
 import { ChangeEvent, FC, useEffect, useState } from 'react';
 
+export type EXPENSE_RANGE =
+  | 'empty'
+  | 'today'
+  | 'thisMonth'
+  | 'thisWeek'
+  | 'thisYear';
 export type TableToolbarProp = {
+  expenseRange: EXPENSE_RANGE;
   onSearchChange(searchKey: string): void;
+  onExpenseRangeChange(range: EXPENSE_RANGE): void;
 };
-export const TableToolbar: FC<TableToolbarProp> = ({ onSearchChange }) => {
+
+export const TableToolbar: FC<TableToolbarProp> = ({
+  expenseRange,
+  onExpenseRangeChange,
+  onSearchChange,
+}) => {
   const [searchKey, setSearchKey] = useState<string>('');
 
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchKey(value);
+  };
+
+  const handleExpenseRangeChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value as any as EXPENSE_RANGE;
+    onExpenseRangeChange(value);
   };
 
   useEffect(() => {
@@ -26,11 +44,16 @@ export const TableToolbar: FC<TableToolbarProp> = ({ onSearchChange }) => {
       <select
         id="filterBy"
         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full md:w-80 p-2"
+        value={expenseRange}
+        onChange={handleExpenseRangeChange}
       >
-        <option>United States</option>
-        <option>Canada</option>
-        <option>France</option>
-        <option>Germany</option>
+        <option value={'empty'}>
+          {expenseRange === 'empty' ? 'Select' : 'Clear'}
+        </option>
+        <option value={'today'}>Today</option>
+        <option value={'thisWeek'}>This Week</option>
+        <option value={'thisMonth'}>This Month</option>
+        <option value={'thisYear'}>This Year</option>
       </select>
       <div className="relative">
         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
