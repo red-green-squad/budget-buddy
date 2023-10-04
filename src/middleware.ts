@@ -20,7 +20,9 @@ export async function middleware(request: NextRequest) {
     }
   }
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('userEmail', token!.email!);
+  if (token) {
+    requestHeaders.set('userEmail', token.email!);
+  }
 
   return NextResponse.next({
     request: {
