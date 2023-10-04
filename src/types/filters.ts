@@ -12,4 +12,17 @@ export type NumericFilter = {
   value: number;
 };
 
-export type Filter = TextFilter | NumericFilter;
+export type DateFilter = {
+  type: 'date';
+  path: string[];
+  condition: 'date:eq' | 'date:gt' | 'date:lt';
+  value: Date;
+};
+
+export type DateRangeFilter = {
+  type: 'date-range';
+  path: string[];
+  value: { start: Date; end: Date };
+};
+
+export type Filter = TextFilter | NumericFilter | DateFilter | DateRangeFilter;

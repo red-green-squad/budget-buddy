@@ -1,11 +1,13 @@
 'use client';
 
+import { EXPENSE_RANGE } from '@/components/common/table/TableToolbar';
 import { CreateExpenseModal } from '@/components/expenses/CreateExpenseModal';
 import { ExpensesList } from '@/components/expenses/ExpensesList';
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@/constants/table';
 import { useAsync } from '@/hooks/useAsync';
 import { ExpenseListPage } from '@/types/expenses';
 import { Filter } from '@/types/filters';
+import { getFilter } from '@/utils/filters';
 import axios, { AxiosResponse } from 'axios';
 import { produce } from 'immer';
 import { useEffect, useState } from 'react';
@@ -15,6 +17,7 @@ export default function Expenses() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(DEFAULT_PAGE);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [expenseRange, setExpenseRange] = useState<EXPENSE_RANGE>('thisWeek');
   const [filters, setFilters] = useState<Filter[]>([]);
   const [expensesResult, getExpenses] = useAsync<
     AxiosResponse<ExpenseListPage>,
@@ -84,6 +87,34 @@ export default function Expenses() {
     }
   };
 
+  const handleExpenseRangeChange = (range: EXPENSE_RANGE) => {
+    if (range === 'empty') {
+      const updatedFilters = produce(filters, (draft) => {
+        const rangeFilterIndex = draft.findIndex(
+          (filter) => filter.path.join('.') === 'date'
+        );
+        if (rangeFilterIndex !== -1) {
+          draft.splice(rangeFilterIndex, 1);
+        }
+      });
+      setFilters(updatedFilters);
+    } else {
+      const filter = getFilter(range);
+      const updatedFilters = produce(filters, (draft) => {
+        const rangeFilterIndex = draft.findIndex(
+          (filter) => filter.path.join('.') === 'date'
+        );
+        if (rangeFilterIndex !== -1) {
+          draft[rangeFilterIndex] = filter;
+        } else {
+          draft.push(filter);
+        }
+      });
+      setFilters(updatedFilters);
+    }
+    setExpenseRange(range);
+  };
+
   return (
     <div className="h-full shadow-md sm:rounded-lg flex-1 p-4 flex flex-col">
       <div className="flex flex-col h-[15%]">
@@ -100,9 +131,11 @@ export default function Expenses() {
           expenses={expensesResult}
           page={page}
           pageSize={pageSize}
+          expenseRange={expenseRange}
           onPageChange={setPage}
           onPageSizeChange={setPageSize}
           onSearchKeyChange={handleSearchKeyChange}
+          onExpenseRangeChange={handleExpenseRangeChange}
         />
       </div>
       <CreateExpenseModal
