@@ -60,6 +60,11 @@ export const ExpensesList: FC<ExpenseListProps> = ({
             type: 'string',
           },
           {
+            key: 'date',
+            name: 'Spent On',
+            type: 'date',
+          },
+          {
             key: 'amount',
             name: 'Amount',
             type: 'number',
@@ -67,11 +72,6 @@ export const ExpensesList: FC<ExpenseListProps> = ({
           {
             key: 'createdAt',
             name: 'Created On',
-            type: 'date',
-          },
-          {
-            key: 'date',
-            name: 'Expense Date',
             type: 'date',
           },
         ]}
