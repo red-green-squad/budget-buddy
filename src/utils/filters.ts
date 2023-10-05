@@ -105,7 +105,7 @@ export function translateFilters(filters: Filter[]): PipelineStage[] {
 }
 
 export function getFilter(
-  range: Exclude<EXPENSE_RANGE, 'empty'>
+  range: Exclude<EXPENSE_RANGE, 'all'>
 ): DateFilter | DateRangeFilter {
   const today = moment().toDate();
   switch (range) {

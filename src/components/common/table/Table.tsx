@@ -1,4 +1,6 @@
 'use client';
+import { produce } from 'immer';
+import _ from 'lodash';
 import moment from 'moment';
 import { Loader } from '../Loader';
 import { EmptyList } from './EmptyList';
@@ -19,8 +21,11 @@ type TableProps<T> = {
   totalItemCount: number;
   items: T[];
   columns: TableColumn<T>[];
+  selectedItems: T[];
   onPageChange(page: number): void;
   onPageSizeChange(pageSize: number): void;
+  onEditItem(item: T): void;
+  onSelectItemsChange(items: T[]): void;
 };
 
 function getColumnValue<T>(column: TableColumn<T>, item: T) {
@@ -31,10 +36,14 @@ function getColumnValue<T>(column: TableColumn<T>, item: T) {
     case 'number':
       return Number(value);
     case 'date':
-      return moment(value as Date).format('DD-MM-YYYY');
+      return moment(value as Date).format('DD-MM-YYYY hh:mm A');
     case 'array':
       return (value as unknown[]).join('.');
   }
+}
+
+function isChecked<T>(item: T, selectedItems: T[]) {
+  return selectedItems.some((selectedItem) => _.isEqual(selectedItem, item));
 }
 
 export const Table = <
@@ -47,9 +56,38 @@ export const Table = <
   columns,
   isLoading = false,
   hasError = false,
+  selectedItems = [],
   onPageChange,
   onPageSizeChange,
+  onEditItem,
+  onSelectItemsChange,
 }: TableProps<T>) => {
+  const isAllSelected = items.every((item) => isChecked(item, selectedItems));
+  const hasSelectedItems = selectedItems.length > 0;
+
+  const handleItemSelect = (item: T) => {
+    const index = selectedItems.findIndex((expense) =>
+      _.isEqual(expense, item)
+    );
+    let updatedItems = Array.from(selectedItems);
+    if (index !== -1) {
+      updatedItems = produce(updatedItems, (draft) => {
+        draft.splice(index, 1);
+      });
+    } else {
+      updatedItems.push(item);
+    }
+    onSelectItemsChange(updatedItems);
+  };
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      onSelectItemsChange([]);
+    } else {
+      onSelectItemsChange(items);
+    }
+  };
+
   return (
     <div className="h-[90%]  flex-1 flex flex-col">
       <div className="overflow-y-auto h-[80%] md:h-[90%]">
@@ -62,7 +100,9 @@ export const Table = <
                     <input
                       id="checkbox-all-search"
                       type="checkbox"
+                      checked={isAllSelected}
                       className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500"
+                      onChange={handleSelectAll}
                     />
                     <label htmlFor="checkbox-all-search" className="sr-only">
                       checkbox
@@ -97,7 +137,9 @@ export const Table = <
                         <input
                           id="checkbox-table-search-1"
                           type="checkbox"
+                          checked={isChecked(item, selectedItems)}
                           className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500   focus:ring-2 "
+                          onChange={() => handleItemSelect(item)}
                         />
                         <label
                           htmlFor="checkbox-table-search-1"
@@ -116,12 +158,17 @@ export const Table = <
                       );
                     })}
                     <td className="px-6 py-4">
-                      <a
-                        href="#"
-                        className="font-medium text-blue-600  hover:underline"
+                      <button
+                        disabled={hasSelectedItems}
+                        onClick={() => onEditItem(item)}
+                        className={`font-medium text-blue-600  hover:underline ${
+                          hasSelectedItems
+                            ? 'hover:no-underline hover:cursor-not-allowed text-blue-300'
+                            : ''
+                        }`}
                       >
                         Edit
-                      </a>
+                      </button>
                     </td>
                   </tr>
                 );

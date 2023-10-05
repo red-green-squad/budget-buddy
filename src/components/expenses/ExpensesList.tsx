@@ -12,10 +12,14 @@ export type ExpenseListProps = {
   page: number;
   pageSize: number;
   expenseRange: EXPENSE_RANGE;
+  selectedExpenses: ExpenseItem[];
   onPageChange(page: number): void;
   onPageSizeChange(pageSize: number): void;
   onSearchKeyChange(searchKey: string): void;
   onExpenseRangeChange(expenseRange: EXPENSE_RANGE): void;
+  onEditExpense(expense: ExpenseItem): void;
+  onSelectedExpensesChange(expenses: ExpenseItem[]): void;
+  onDeleteExpenses(): void;
 };
 
 export const ExpensesList: FC<ExpenseListProps> = ({
@@ -23,18 +27,24 @@ export const ExpensesList: FC<ExpenseListProps> = ({
   page,
   pageSize,
   expenseRange,
+  selectedExpenses,
   onPageChange,
   onPageSizeChange,
   onSearchKeyChange,
   onExpenseRangeChange,
+  onEditExpense,
+  onSelectedExpensesChange,
+  onDeleteExpenses,
 }) => {
   const { isLoading, error, data: result } = expenses;
   return (
     <div className="h-full flex flex-col flex-1 gap-4">
       <TableToolbar
+        selectedItems={selectedExpenses}
         expenseRange={expenseRange}
         onExpenseRangeChange={onExpenseRangeChange}
         onSearchChange={onSearchKeyChange}
+        onDelete={onDeleteExpenses}
       />
       <Table<ExpenseItem>
         isLoading={isLoading}
@@ -43,6 +53,7 @@ export const ExpensesList: FC<ExpenseListProps> = ({
         pageSize={pageSize}
         totalItemCount={result?.data.totalItemCount || 0}
         items={result?.data.items || []}
+        selectedItems={selectedExpenses}
         columns={[
           {
             key: 'name',
@@ -74,9 +85,16 @@ export const ExpensesList: FC<ExpenseListProps> = ({
             name: 'Created On',
             type: 'date',
           },
+          {
+            key: 'updatedAt',
+            name: 'Last Updated',
+            type: 'date',
+          },
         ]}
         onPageChange={onPageChange}
         onPageSizeChange={onPageSizeChange}
+        onEditItem={onEditExpense}
+        onSelectItemsChange={onSelectedExpensesChange}
       />
     </div>
   );
