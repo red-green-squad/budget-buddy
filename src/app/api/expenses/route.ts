@@ -4,6 +4,7 @@ import { ExpenseListPage } from '@/types/expenses';
 import { Filter } from '@/types/filters';
 import { translateFilters } from '@/utils/filters';
 import { ExpenseValues } from '@/zod-schema/expense';
+import mongoose from 'mongoose';
 import { NextRequest, NextResponse } from 'next/server';
 
 export type ExpenseRequestBody = {
@@ -79,6 +80,39 @@ export async function GET(
       },
       { status: 200 }
     );
+  } catch (err) {
+    return NextResponse.json(
+      { message: 'Something went wrong' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    await connectToDB();
+    const expenseIds: string[] = await req.json();
+    const email = req.headers.get('userEmail');
+    const connection = mongoose.connection;
+
+    const session = await connection.startSession();
+    try {
+      await session.withTransaction(async () => {
+        await ExpenseModel.deleteMany(
+          {
+            createdBy: email,
+            _id: { $in: expenseIds.map((id) => new Object(id)) },
+          },
+          { session }
+        );
+      });
+      session.endSession();
+      return NextResponse.json({ expenseIds }, { status: 200 });
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
   } catch (err) {
     return NextResponse.json(
       { message: 'Something went wrong' },

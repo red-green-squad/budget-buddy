@@ -2,9 +2,11 @@
 
 import { EXPENSE_RANGE } from '@/components/common/table/TableToolbar';
 import { CreateExpenseModal } from '@/components/expenses/CreateExpenseModal';
+import { DeleteExpensesModal } from '@/components/expenses/DeleteExpensesModal';
+import { EditExpenseModal } from '@/components/expenses/EditExpenseModal';
 import { ExpensesList } from '@/components/expenses/ExpensesList';
 import { useAsync } from '@/hooks/useAsync';
-import { ExpenseListPage } from '@/types/expenses';
+import { ExpenseItem, ExpenseListPage } from '@/types/expenses';
 import { Filter } from '@/types/filters';
 import { getFilter } from '@/utils/filters';
 import { ExpenseQuerySchema } from '@/zod-schema/expense';
@@ -39,12 +41,19 @@ function getFilters(expenseRange: EXPENSE_RANGE, searchKey?: string) {
     });
   }
   const range = expenseRange;
-  if (range !== 'empty') {
+  if (range !== 'all') {
     const rangeFilter = getFilter(range);
     filters.push(rangeFilter);
   }
   return filters;
 }
+
+type ExpenseDialogType =
+  | {
+      type: 'create';
+    }
+  | { type: 'edit'; value: ExpenseItem }
+  | { type: 'delete'; value: ExpenseItem[] };
 
 export default function Expenses() {
   const router = useRouter();
@@ -52,12 +61,14 @@ export default function Expenses() {
   const searchParams = useSearchParams();
   const parsedParams = parseSearchParamsToObj(searchParams);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const { page, pageSize, searchKey, expenseRange } =
     ExpenseQuerySchema.parse(parsedParams);
   const filters = useMemo(() => {
     return getFilters(expenseRange as EXPENSE_RANGE, searchKey);
   }, [searchKey, expenseRange]);
+
+  const [dialogType, setDialogType] = useState<ExpenseDialogType>();
+  const [selectedExpenses, setSelectedExpenses] = useState<ExpenseItem[]>([]);
 
   const [expensesResult, getExpenses] = useAsync<
     AxiosResponse<ExpenseListPage>,
@@ -92,11 +103,15 @@ export default function Expenses() {
   }, [page, pageSize, filters]);
 
   const handleModalClose = () => {
-    setIsModalOpen(false);
+    setDialogType(undefined);
   };
 
   const handleCreateExpense = () => {
-    setIsModalOpen(true);
+    setDialogType({ type: 'create' });
+  };
+
+  const handleEditExpense = (expense: ExpenseItem) => {
+    setDialogType({ type: 'edit', value: expense });
   };
 
   const handlePageChange = (page: number) => {
@@ -114,7 +129,16 @@ export default function Expenses() {
     router.push(pathname + `?${queryString}`);
   };
 
-  const handleCreateExpenseComplete = async () => {
+  const handleDeleteExpenses = () => {
+    setDialogType({ type: 'delete', value: selectedExpenses });
+  };
+
+  const handleDeleteExpenseComplete = async () => {
+    await getLatestExpenses();
+    setSelectedExpenses([]);
+  };
+
+  const getLatestExpenses = async () => {
     await getExpenses({
       pagination: { page, pageSize },
       filters,
@@ -126,8 +150,35 @@ export default function Expenses() {
     router.push(pathname + `?${queryString}`);
   };
 
-  console.log('ExpenseRange: ', expenseRange);
-  console.log(searchParams.toString());
+  const dialog = (() => {
+    switch (dialogType?.type) {
+      case 'create':
+        return (
+          <CreateExpenseModal
+            onClose={handleModalClose}
+            onComplete={getLatestExpenses}
+          />
+        );
+      case 'edit':
+        return (
+          <EditExpenseModal
+            item={dialogType.value}
+            onClose={handleModalClose}
+            onComplete={getLatestExpenses}
+          />
+        );
+      case 'delete':
+        return (
+          <DeleteExpensesModal
+            items={dialogType.value}
+            onClose={handleModalClose}
+            onComplete={handleDeleteExpenseComplete}
+          />
+        );
+      default:
+        null;
+    }
+  })();
 
   return (
     <div className="h-full shadow-md sm:rounded-lg flex-1 p-4 flex flex-col">
@@ -145,18 +196,18 @@ export default function Expenses() {
           expenses={expensesResult}
           page={page}
           pageSize={pageSize}
+          selectedExpenses={selectedExpenses}
           expenseRange={expenseRange as EXPENSE_RANGE}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           onSearchKeyChange={handleSearchKeyChange}
           onExpenseRangeChange={handleFilterRangeChange}
+          onEditExpense={handleEditExpense}
+          onSelectedExpensesChange={setSelectedExpenses}
+          onDeleteExpenses={handleDeleteExpenses}
         />
+        {dialog}
       </div>
-      <CreateExpenseModal
-        isOpen={isModalOpen}
-        onClose={handleModalClose}
-        onComplete={handleCreateExpenseComplete}
-      />
     </div>
   );
 }

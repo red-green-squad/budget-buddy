@@ -1,20 +1,24 @@
 import { useAsync } from '@/hooks/useAsync';
 import { Expense } from '@/models/expense';
+import { ExpenseItem } from '@/types/expenses';
 import { ExpenseSchema, ExpenseValues } from '@/zod-schema/expense';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios, { AxiosResponse } from 'axios';
+import moment from 'moment';
 import { FC } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { Modal } from '../common/Modal';
 import { ExpenseForm } from './ExpenseForm';
 
-type CreateExpenseModal = {
+type EditExpenseModalProps = {
+  item: ExpenseItem;
   onClose(): void;
   onComplete(): Promise<void>;
 };
 
-export const CreateExpenseModal: FC<CreateExpenseModal> = ({
+export const EditExpenseModal: FC<EditExpenseModalProps> = ({
+  item,
   onClose,
   onComplete,
 }) => {
@@ -26,36 +30,44 @@ export const CreateExpenseModal: FC<CreateExpenseModal> = ({
   } = useForm<ExpenseValues>({
     resolver: zodResolver(ExpenseSchema),
     mode: 'all',
-  });
-  const [{ isLoading }, createExpense] = useAsync<
-    AxiosResponse<Expense>,
-    ExpenseValues
-  >({
-    fn: (values) => {
-      return axios.post('/api/expenses', values);
+    defaultValues: {
+      amount: item.amount,
+      category: item.category,
+      name: item.name,
+      description: item.description,
+      date: moment(item.date).format('YYYY-MM-DD') as any,
     },
-    onComplete: handleCreateComplete,
-    onError: handleCreateError,
   });
 
-  async function handleCreateComplete() {
-    toast.success('Successfully Created the Expense');
-    await onComplete();
+  const [{ isLoading }, editExpense] = useAsync<
+    AxiosResponse<Expense>,
+    { body: ExpenseValues; id: string }
+  >({
+    fn: ({ body, id }) => {
+      return axios.put(`/api/expenses/${id}`, body);
+    },
+    onComplete: handleEditComplete,
+    onError: handleEditError,
+  });
+
+  async function handleEditComplete() {
+    toast.success('Successfully Edited the Expense');
     handleClose();
+    await onComplete();
   }
 
-  function handleCreateError(e: Error) {
+  function handleEditError(e: Error) {
     toast.error(e.message);
   }
 
   const handleFormSubmit = async () => {
     const data = getValues();
-    await createExpense(data);
+    await editExpense({ body: data, id: item.id });
   };
 
   const handleClose = () => {
-    onClose();
     reset();
+    onClose();
   };
 
   return (
@@ -63,7 +75,7 @@ export const CreateExpenseModal: FC<CreateExpenseModal> = ({
       open={true}
       header={
         <div className="flex text-2xl justify-center p-4">
-          <h1>Create Expense</h1>
+          <h1>Edit Expense</h1>
         </div>
       }
       footer={
@@ -81,7 +93,7 @@ export const CreateExpenseModal: FC<CreateExpenseModal> = ({
             className="p-2 flex-1 h-12 rounded-xl disabled:bg-gray-400 bg-indigo-500 text-white items-center hover:bg-indigo-600"
             onClick={() => handleFormSubmit()}
           >
-            <p>{isLoading ? 'Creating..' : 'Create'}</p>
+            <p>{isLoading ? 'Editing..' : 'Edit'}</p>
           </button>
         </section>
       }
