@@ -3,6 +3,7 @@ import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@/constants/table';
 import { z } from 'zod';
 
 const ExpenseCategorySchema = z.enum(ExpenseCategories);
+
 export type ExpenseCategory = z.infer<typeof ExpenseCategorySchema>;
 
 export const ExpenseSchema = z.object({
@@ -20,6 +21,13 @@ export const ExpenseSchema = z.object({
     .number({ required_error: 'Amount required', coerce: true })
     .min(0, 'Enter valid Amount'),
   date: z.coerce.date({ required_error: 'Date Required' }),
+  files: z
+    .object({
+      id: z.string(),
+      file: z.custom<File>(),
+    })
+    .array()
+    .optional(),
 });
 
 export const ExpenseQuerySchema = z.object({
@@ -29,4 +37,29 @@ export const ExpenseQuerySchema = z.object({
   expenseRange: z.string().default('thisWeek'),
 });
 
+export const EditExpenseSchema = z.object({
+  name: z.string().trim().min(1, 'Expense name required'),
+  description: z
+    .string()
+    .trim()
+    .optional()
+    .transform((val) => {
+      if (val?.length) return val;
+      return undefined;
+    }),
+  category: ExpenseCategorySchema,
+  amount: z
+    .number({ required_error: 'Amount required', coerce: true })
+    .min(0, 'Enter valid Amount'),
+  date: z.coerce.date({ required_error: 'Date Required' }),
+  files: z
+    .object({
+      id: z.string(),
+      file: z.custom<File>(),
+    })
+    .array()
+    .optional(),
+});
+
 export type ExpenseValues = z.infer<typeof ExpenseSchema>;
+export type EditExpenseValues = z.infer<typeof ExpenseSchema>;

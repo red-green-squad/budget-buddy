@@ -29,7 +29,7 @@ export class Expense extends TimeStamps {
   public category!: string;
 
   @prop({ required: false })
-  public images?: string[];
+  public files?: string[];
 
   @prop({ required: true })
   public createdBy!: string;
