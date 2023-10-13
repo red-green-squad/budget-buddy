@@ -191,7 +191,7 @@ export default function Expenses() {
           Create Expense
         </button>
       </div>
-      <div className="flex flex-col h-[85%]">
+      <div className="flex flex-row h-[85%]">
         <ExpensesList
           expenses={expensesResult}
           page={page}

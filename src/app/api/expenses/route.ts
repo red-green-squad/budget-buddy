@@ -1,9 +1,9 @@
+import { CreateExpenseRequest } from '@/components/expenses/CreateExpenseModal';
 import { connectToDB } from '@/db/mongodb';
 import { ExpenseModel } from '@/models/expense';
 import { ExpenseListPage } from '@/types/expenses';
 import { Filter } from '@/types/filters';
 import { translateFilters } from '@/utils/filters';
-import { ExpenseValues } from '@/zod-schema/expense';
 import mongoose from 'mongoose';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -16,12 +16,13 @@ export type ExpenseRequestBody = {
 export async function POST(req: NextRequest) {
   try {
     await connectToDB();
-    const expenseDetails: ExpenseValues = await req.json();
+    const expenseDetails: CreateExpenseRequest = await req.json();
     const email = req.headers.get('userEmail');
 
     const expense = await ExpenseModel.create({
       ...expenseDetails,
       createdBy: email,
+      fileKeys: expenseDetails.files,
     });
 
     return NextResponse.json({ expense }, { status: 201 });

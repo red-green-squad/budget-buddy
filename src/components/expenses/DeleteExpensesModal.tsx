@@ -33,7 +33,7 @@ export const DeleteExpensesModal: FC<DeleteExpensesModalProps> = ({
   );
 
   async function handleDeleteComplete() {
-    toast.success('Successfully Edited the Expense');
+    toast.success('Successfully Deleted the Expenses');
     handleClose();
     await onComplete();
   }

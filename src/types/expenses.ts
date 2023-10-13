@@ -8,7 +8,7 @@ export type ExpenseItem = {
   date: Date;
   createdAt: Date;
   updatedAt: Date;
-  images: unknown[];
+  files: string[];
   amount: number;
 };
 

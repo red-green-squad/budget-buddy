@@ -1,3 +1,4 @@
+import { uploadFilesWithCleanup } from '@/app/api/s3/s3';
 import { useAsync } from '@/hooks/useAsync';
 import { Expense } from '@/models/expense';
 import { ExpenseSchema, ExpenseValues } from '@/zod-schema/expense';
@@ -6,12 +7,17 @@ import axios, { AxiosResponse } from 'axios';
 import { FC } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
+import { FileInput, FileUploader } from '../common/FileUploader';
 import { Modal } from '../common/Modal';
 import { ExpenseForm } from './ExpenseForm';
 
 type CreateExpenseModal = {
   onClose(): void;
   onComplete(): Promise<void>;
+};
+
+export type CreateExpenseRequest = Omit<ExpenseValues, 'files'> & {
+  files: string[];
 };
 
 export const CreateExpenseModal: FC<CreateExpenseModal> = ({
@@ -22,6 +28,7 @@ export const CreateExpenseModal: FC<CreateExpenseModal> = ({
     register,
     getValues,
     formState: { isDirty, isValid, errors },
+    setValue,
     reset,
   } = useForm<ExpenseValues>({
     resolver: zodResolver(ExpenseSchema),
@@ -29,7 +36,7 @@ export const CreateExpenseModal: FC<CreateExpenseModal> = ({
   });
   const [{ isLoading }, createExpense] = useAsync<
     AxiosResponse<Expense>,
-    ExpenseValues
+    CreateExpenseRequest
   >({
     fn: (values) => {
       return axios.post('/api/expenses', values);
@@ -49,14 +56,40 @@ export const CreateExpenseModal: FC<CreateExpenseModal> = ({
   }
 
   const handleFormSubmit = async () => {
-    const data = getValues();
-    await createExpense(data);
+    try {
+      const { files: inputFiles, ...data } = getValues();
+      const files = inputFiles?.map((inputFile) => inputFile.file);
+      let fileKeys: string[] = [];
+      if (files) {
+        const uploadedFiles = await uploadFilesWithCleanup(files);
+        fileKeys = uploadedFiles.map((file) => file.Key!);
+      }
+      await createExpense({ ...data, files: fileKeys });
+    } catch (error) {
+      toast.error('Error while creating the Expense');
+    }
+  };
+
+  const handleFilesChange = (updatedFiles: FileInput[]) => {
+    setValue('files', updatedFiles, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
+
+  const handleFileClick = (file: FileInput | string) => {
+    if (typeof file !== 'string') {
+      const objectURL = URL.createObjectURL(file.file);
+      window.open(objectURL);
+    }
   };
 
   const handleClose = () => {
     onClose();
     reset();
   };
+
+  const { files } = getValues();
 
   return (
     <Modal
@@ -87,6 +120,11 @@ export const CreateExpenseModal: FC<CreateExpenseModal> = ({
       }
     >
       <ExpenseForm register={register} errors={errors} />
+      <FileUploader
+        files={files ?? []}
+        onFilesChange={handleFilesChange}
+        onFileClick={handleFileClick}
+      />
     </Modal>
   );
 };
