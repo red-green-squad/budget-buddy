@@ -38,7 +38,7 @@ export const ExpensesList: FC<ExpenseListProps> = ({
 }) => {
   const { isLoading, error, data: result } = expenses;
   return (
-    <div className="h-full flex flex-col flex-1 gap-4">
+    <div className="h-full w-full box-border flex flex-col flex-1 gap-4">
       <TableToolbar
         selectedItems={selectedExpenses}
         expenseRange={expenseRange}
