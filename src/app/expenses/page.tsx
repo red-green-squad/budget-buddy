@@ -181,17 +181,17 @@ export default function Expenses() {
   })();
 
   return (
-    <div className="h-full shadow-md sm:rounded-lg flex-1 p-4 flex flex-col">
-      <div className="flex flex-col h-[15%]">
-        <h1 className="mb-4 text-xl text-center">Expenses</h1>
+    <div className="h-full box-border shadow-md sm:rounded-lg flex-1 p-4 flex gap-2 flex-col">
+      <div className="flex gap-2 flex-col h-[15%]">
+        <h1 className="text-xl text-center">Expenses</h1>
         <button
           onClick={handleCreateExpense}
-          className="bg-indigo-500 hover:bg-indigo-400 text-white rounded-md self-end px-4 py-2 my-4"
+          className="bg-indigo-500 hover:bg-indigo-400 text-white rounded-md self-end px-4 py-2"
         >
           Create Expense
         </button>
       </div>
-      <div className="flex flex-row h-[85%]">
+      <div className="flex flex-row flex-1">
         <ExpensesList
           expenses={expensesResult}
           page={page}
