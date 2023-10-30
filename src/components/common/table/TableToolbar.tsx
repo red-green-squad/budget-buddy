@@ -4,6 +4,7 @@ import { ExpenseItem } from '@/types/expenses';
 import { ChangeEvent, FC, useEffect, useState } from 'react';
 import { MdDelete } from 'react-icons/md';
 import { AiOutlineSearch } from 'react-icons/ai';
+import { Dropdown, DropdownOption } from '../Dropdown';
 export type EXPENSE_RANGE =
   | 'all'
   | 'today'
@@ -17,6 +18,29 @@ export type TableToolbarProp = {
   onExpenseRangeChange(range: EXPENSE_RANGE): void;
   onDelete(): void;
 };
+
+const EXPENSE_RANGE_OPTIONS = [
+  {
+    label: 'All',
+    value: 'all',
+  },
+  {
+    label: 'Today',
+    value: 'today',
+  },
+  {
+    label: 'This Week',
+    value: 'thisWeek',
+  },
+  {
+    label: 'This Month',
+    value: 'thisMonth',
+  },
+  {
+    label: 'This Year',
+    value: 'thisYear',
+  },
+];
 
 export const TableToolbar: FC<TableToolbarProp> = ({
   expenseRange,
@@ -32,9 +56,8 @@ export const TableToolbar: FC<TableToolbarProp> = ({
     setSearchKey(value);
   };
 
-  const handleExpenseRangeChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const value = event.target.value as any as EXPENSE_RANGE;
-    onExpenseRangeChange(value);
+  const handleExpenseRangeChange = (option: DropdownOption<EXPENSE_RANGE>) => {
+    onExpenseRangeChange(option.value);
   };
 
   useEffect(() => {
@@ -47,18 +70,15 @@ export const TableToolbar: FC<TableToolbarProp> = ({
 
   return (
     <div className="flex flex-col gap-2 mx-auto md:mx-0 md:justify-between md:flex-row">
-      <select
-        id="filterBy"
-        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full md:w-80 p-2"
-        value={expenseRange}
+      <Dropdown
+        value={EXPENSE_RANGE_OPTIONS.find(
+          (option) => option.value === expenseRange
+        )}
+        options={EXPENSE_RANGE_OPTIONS}
         onChange={handleExpenseRangeChange}
-      >
-        <option value={'all'}>All</option>
-        <option value={'today'}>Today</option>
-        <option value={'thisWeek'}>This Week</option>
-        <option value={'thisMonth'}>This Month</option>
-        <option value={'thisYear'}>This Year</option>
-      </select>
+        title="Expense Range"
+        className="w-64"
+      />
       <div className="relative">
         <div className="flex flex-row items-center gap-4 hover:cursor-pointer">
           {selectedItems.length > 0 && (
