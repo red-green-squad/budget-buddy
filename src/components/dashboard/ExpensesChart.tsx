@@ -30,14 +30,16 @@ export const ExpensesChart: FC<ExpensesChartProps> = ({ data }) => {
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="group" />
-          <YAxis />
-          <Tooltip />
+          <XAxis name="Group" dataKey="group" />
+          <YAxis name="Amount" />
+          <Tooltip cursor={false} />
           <Bar
             dataKey="totalAmount"
-            fill="#82ca9d"
+            fill="#3949AB"
             maxBarSize={30}
-            activeBar={<Rectangle fill="purple" stroke="purple" />}
+            activeBar={
+              <Rectangle strokeWidth={'16 0'} fill="#3949AB" stroke="#3949AB" />
+            }
           />
         </BarChart>
       </ResponsiveContainer>

@@ -34,7 +34,7 @@ export const ExpenseQuerySchema = z.object({
   page: z.number({ coerce: true }).default(DEFAULT_PAGE),
   pageSize: z.number({ coerce: true }).default(DEFAULT_PAGE_SIZE),
   searchKey: z.string().optional(),
-  expenseRange: z.string().default('thisWeek'),
+  expenseRange: z.string().default('all'),
 });
 
 export const EditExpenseSchema = z.object({
