@@ -2,8 +2,11 @@
 import { ExpenseSummaryRequestBody } from '@/app/api/summary/route';
 import { useAsync } from '@/hooks/useAsync';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChartType, Toolbar } from './Toolbar';
+import { ExpensesChart } from './ExpensesChart';
+import { Loader } from '../common/Loader';
+import { getMonthName } from '@/utils/common';
 
 export const Summary = () => {
   const [selectedYear, setSelectedYear] = useState<number>();
@@ -27,7 +30,7 @@ export const Summary = () => {
   });
 
   const [expensesSummary, getExpensesSummary] = useAsync<
-    any,
+    { summary: { group: string; totalAmount: number }[] },
     ExpenseSummaryRequestBody
   >({
     fn: async (data) => {
@@ -49,10 +52,25 @@ export const Summary = () => {
     }
   }, [chartType, selectedYear]);
 
-  console.log(expensesSummary.data);
+  const isLoading = expensesSummary.isLoading || yearSuggestions.isLoading;
+  const error = expensesSummary.error || yearSuggestions.error;
+
+  const chartData = useMemo(() => {
+    const { data: { summary } = { summary: [] } } = expensesSummary;
+    if (chartType === 'monthly') {
+      summary.sort();
+      return summary.map((item) => {
+        return {
+          group: getMonthName(Number(item.group)),
+          totalAmount: item.totalAmount,
+        };
+      });
+    }
+    return summary;
+  }, [chartType, expensesSummary]);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 h-full">
       <p className="text-2xl text-center">Summary of Expenses</p>
       <Toolbar
         selectedYear={selectedYear}
@@ -61,6 +79,9 @@ export const Summary = () => {
         onYearChange={setSelectedYear}
         onChartTypeChange={setChartType}
       />
+      {isLoading && !error && <Loader />}
+      {!isLoading && error && <div>Something went wrong</div>}
+      {!isLoading && !error && <ExpensesChart data={chartData} />}
     </div>
   );
 };
