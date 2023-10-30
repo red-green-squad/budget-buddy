@@ -27,7 +27,7 @@ export const Toolbar: FC<ToolbarProps> = ({
     onYearChange(year);
   };
   return (
-    <nav className="p-4 flex flex-row justify-around">
+    <nav className="p-4 flex flex-col items-center gap-4 justify-around md:flex-row">
       <ul className="flex flex-row gap-4 items-center justify-center">
         <li
           className={`p-2 w-28 rounded-lg text-sm bg-indigo-200 text-center hover:cursor-pointer hover:border-b-2 hover:border-indigo-500 ${
