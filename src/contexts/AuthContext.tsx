@@ -8,7 +8,7 @@ export default function AuthProvider({
   children: React.ReactNode;
 }) {
   return (
-    <SessionProvider basePath={"/api/authentication"}>
+    <SessionProvider basePath={'/api/authentication'}>
       {children}
     </SessionProvider>
   );
